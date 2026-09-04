@@ -1,6 +1,9 @@
 # miku-os
-![miku](miku.png)
+
 ![Build Status](https://img.shields.io/badge/build-Miku%20is%20Watching-brightgreen)
+
+
+![miku](miku.png)
 
 
 The best os out there!
@@ -19,7 +22,7 @@ The best os out there!
 # you dont install miku os
 # miku os installs you (only if you are worthy enough)
 ```
-## To check your worthines
+## To check your worthiness
 [Check your worthiness here](https://shiny-chan.github.io/miku-os/miku-os-installer.html)
 
 ## uninstallation
