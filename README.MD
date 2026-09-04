@@ -19,8 +19,8 @@ The best os out there!
 # you dont install miku os
 # miku os installs you (only if you are worthy enough)
 ```
-## To check your worthiness run this
-`(miku-os-installer.html)`
+## To check your worthines
+[Check your worthiness here](https://shiny-chan.github.io/miku-os/miku-os-installer.html)
 
 ## uninstallation
 You don't. Miku os uninstalls you.
