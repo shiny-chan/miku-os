@@ -18,8 +18,9 @@ The best os out there!
 ```bash
 # you dont install miku os
 # miku os installs you (only if you are worthy enough)
-# to check if you are worthy enough `[Try the installer](miku-os-installer.html)`
 ```
+## To check your worthiness run this
+`(miku-os-installer.html)`
 
 ## uninstallation
 You don't. Miku os uninstalls you.
