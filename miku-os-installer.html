@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Miku OS Installer</title>
+<style>
+  :root {
+    --miku-teal: #39c5bb;
+    --miku-pink: #ff6fa5;
+    --bg: #0d1117;
+    --panel: #161b22;
+    --text: #e6edf3;
+    --danger: #ff4d4d;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  #app {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+  }
+  .screen {
+    display: none;
+    width: 480px;
+    max-width: 90vw;
+    background: var(--panel);
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  .screen.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+
+  h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    color: var(--miku-teal);
+  }
+  p.sub { color: #8b949e; margin: 0 0 24px; font-size: 14px; }
+
+  .btn {
+    background: var(--miku-teal);
+    color: #04211f;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.2s ease;
+  }
+  .btn:hover { background: #4fdcd1; }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled {
+    background: #30363d;
+    color: #6e7681;
+    cursor: not-allowed;
+  }
+  .btn:disabled:hover { background: #30363d; }
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid #30363d;
+    margin-left: 10px;
+  }
+  .btn.secondary:hover { background: #21262d; }
+
+  .progress-track {
+    width: 100%;
+    height: 10px;
+    background: #21262d;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 20px 0 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--miku-teal), var(--miku-pink));
+    transition: width 0.15s linear;
+  }
+  .status-line {
+    font-size: 12px;
+    color: #8b949e;
+    min-height: 16px;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* Terminal screen */
+  #terminal-screen {
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    border-radius: 0;
+    border: none;
+    padding: 24px;
+    text-align: left;
+    display: none;
+  }
+  #terminal-screen.active { display: block; }
+  #term-output {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--danger);
+    white-space: pre-wrap;
+    height: calc(100vh - 48px);
+    overflow-y: hidden;
+  }
+
+  /* End screen */
+  #end-screen {
+    background: #000;
+    color: var(--miku-teal);
+    text-align: center;
+  }
+  #end-screen h1 { font-size: 26px; color: var(--miku-teal); }
+  #countdown { font-size: 14px; color: #8b949e; margin-top: 16px; }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #8b949e;
+  }
+
+  .unworthy-badge {
+    display: inline-block;
+    background: rgba(255,77,77,0.15);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Screen 1: Welcome -->
+  <div class="screen active" id="welcome-screen">
+    <h1>Miku OS Setup Wizard</h1>
+    <p class="sub">Version ∞.0 &middot; Extra Crunchy Edition</p>
+    <div class="checkbox-row">
+      <input type="checkbox" id="soul-agree" onchange="toggleInstallButton()">
+      <label for="soul-agree">I agree to transfer my soul (non-negotiable)</label>
+    </div>
+    <button class="btn" id="install-btn" onclick="startInstall()" disabled>Install Now</button>
+  </div>
+
+  <!-- Screen 2: Checking worthiness -->
+  <div class="screen" id="checking-screen">
+    <h1>Checking Worthiness&hellip;</h1>
+    <p class="sub">Please do not close this window. Miku is evaluating you.</p>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="status-line" id="status-line">Initializing&hellip;</div>
+  </div>
+
+  <!-- Screen 3: Not worthy verdict -->
+  <div class="screen" id="verdict-screen">
+    <div class="unworthy-badge">VERDICT: UNWORTHY</div>
+    <h1>You Are Not Worthy.</h1>
+    <p class="sub">Installation cannot continue. Consequences have been initiated.</p>
+    <button class="btn" onclick="beginDeletion()">Continue</button>
+  </div>
+
+  <!-- Screen 4: Fake terminal deletion -->
+  <div class="screen" id="terminal-screen">
+    <div id="term-output"></div>
+  </div>
+
+  <!-- Screen 5: End screen -->
+  <div class="screen" id="end-screen">
+    <h1>MIKU-OS HAS ENDED YOUR SESSION</h1>
+    <p class="sub" style="color:#8b949e;">This was never real. Your files are safe. You are, however, still not worthy.</p>
+    <div id="countdown">Restarting in 5&hellip;</div>
+    <button class="btn secondary" style="margin-top:16px;" onclick="restart()">Restart Now</button>
+  </div>
+
+</div>
+
+<script>
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function toggleInstallButton() {
+    const checked = document.getElementById('soul-agree').checked;
+    document.getElementById('install-btn').disabled = !checked;
+  }
+
+  function startInstall() {
+    showScreen('checking-screen');
+    const fill = document.getElementById('progress-fill');
+    const status = document.getElementById('status-line');
+    const messages = [
+      'Scanning soul integrity\u2026',
+      'Cross-referencing playlist history\u2026',
+      'Measuring song-per-second capacity\u2026',
+      'Consulting the RAW POWER reserves\u2026',
+      'Finalizing verdict\u2026'
+    ];
+    let pct = 0;
+    let msgIndex = 0;
+    status.textContent = messages[0];
+
+    const interval = setInterval(() => {
+      pct += Math.random() * 8 + 4; // random-ish increments for realism
+      if (pct >= 100) {
+        pct = 100;
+        fill.style.width = pct + '%';
+        clearInterval(interval);
+        setTimeout(() => showScreen('verdict-screen'), 500);
+        return;
+      }
+      fill.style.width = pct + '%';
+      const newIndex = Math.min(messages.length - 1, Math.floor((pct / 100) * messages.length));
+      if (newIndex !== msgIndex) {
+        msgIndex = newIndex;
+        status.textContent = messages[msgIndex];
+      }
+    }, 220);
+  }
+
+  function beginDeletion() {
+    showScreen('terminal-screen');
+    const out = document.getElementById('term-output');
+    out.textContent = '';
+
+    const fakeFiles = [
+      'C:\\Windows\\System32\\drivers\\worthiness.sys',
+      'C:\\Windows\\System32\\config\\SOUL',
+      'C:\\Users\\You\\AppData\\Local\\Excuses\\backlog.dat',
+      'C:\\Windows\\System32\\ntdll.dll',
+      'C:\\Windows\\System32\\kernel32.dll',
+      'C:\\Users\\You\\Documents\\reasons_im_worthy.txt',
+      'C:\\Windows\\System32\\drivers\\etc\\dignity',
+      'C:\\Windows\\System32\\spool\\printers\\last_chance.spl',
+      'C:\\Windows\\System32\\miku_approval.cfg',
+      'C:\\Windows\\explorer.exe',
+      'C:\\Windows\\System32\\combase.dll',
+      'C:\\Users\\You\\self_esteem.bak'
+    ];
+
+    let i = 0;
+    function printNext() {
+      if (i >= fakeFiles.length) {
+        out.textContent += '\n\n> miku is disappointed...BE GONE\n';
+        setTimeout(() => showScreen('end-screen') || startCountdown(), 1200);
+        return;
+      }
+      out.textContent += 'Deleting ' + fakeFiles[i] + ' ... done\n';
+      out.scrollTop = out.scrollHeight;
+      i++;
+      setTimeout(printNext, 260 + Math.random() * 200);
+    }
+    setTimeout(printNext, 400);
+  }
+
+  function startCountdown() {
+    let n = 5;
+    const el = document.getElementById('countdown');
+    el.textContent = 'Restarting in ' + n + '\u2026';
+    const timer = setInterval(() => {
+      n--;
+      if (n <= 0) {
+        clearInterval(timer);
+        restart();
+        return;
+      }
+      el.textContent = 'Restarting in ' + n + '\u2026';
+    }, 1000);
+  }
+
+  function restart() {
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('soul-agree').checked = false;
+    document.getElementById('install-btn').disabled = true;
+    showScreen('welcome-screen');
+  }
+</script>
+
+</body>
+</html>
