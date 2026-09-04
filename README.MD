@@ -1,6 +1,7 @@
 # miku-os
-![Build Status](https://img.shields.io/badge/build-Miku%20is%20Watching-brightgreen)
 ![miku](miku.png)
+![Build Status](https://img.shields.io/badge/build-Miku%20is%20Watching-brightgreen)
+
 
 The best os out there!
 
